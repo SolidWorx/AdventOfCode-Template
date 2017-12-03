@@ -1,0 +1,10 @@
+{
+    "require": {
+        "symfony/console": "^4.0"
+    },
+    "autoload": {
+        "files": [
+            "bootstrap.php"
+        ]
+    }
+}

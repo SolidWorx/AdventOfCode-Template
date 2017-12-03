@@ -1,0 +1,115 @@
+#!/usr/bin/env php
+<?php
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+
+require_once dirname(__DIR__).'/vendor/autoload.php';
+
+try {
+    (new Application('Advent Of Code', '0.1.0'))
+        ->register('run')
+        ->addArgument('day', InputArgument::OPTIONAL, 'The day to run')
+        ->addOption('test', null, InputOption::VALUE_NONE, 'Run tests')
+        ->setCode(function (InputInterface $input, OutputInterface $output) {
+            $path = dirname(__DIR__).'/src';
+            $dirs = new DirectoryIterator($path);
+
+            $days = [];
+            /** @var DirectoryIterator $dir */
+            foreach ($dirs as $dir) {
+                if ($dir->isDot()) {
+                    continue;
+                }
+                $days[$dir->getFilename()] = true;
+                uksort($days, function ($a, $b) {
+                    return substr($a, 3) <=> substr($b, 3);
+                });
+            }
+
+            $selectedDay = $input->getArgument('day');
+
+            if ($selectedDay) {
+                if ($days[$selectedDay] ?? false) {
+                    $days = [$input->getArgument('day') => true];
+                } else {
+                    throw new \InvalidArgumentException("Day $selectedDay does not exist. Available days: ".implode(', ', array_keys($days)));
+                }
+            }
+
+            foreach (array_keys($days) as $day) {
+                $tests = (function ($path, $day) {
+                    return require_once("$path/$day/test.php");
+                })($path, $day);
+
+                if (empty($tests[0])) {
+                    continue;
+                }
+
+                $output->writeln("<comment>Running $day</comment>\n");
+
+                if ($input->getOption('test')) {
+                    $output->writeln("<comment>Testing Part 1</comment>\n");
+
+                    foreach ($tests[0] as $dayInput => $test) {
+                        setInput($dayInput);
+
+                        $result = (function ($path, $day) {
+                            return require("$path/$day/part1.php");
+                        })($path, $day);
+
+                        if ($result === $test) {
+                            $output->writeln('<success>Pass!</success>');
+                        } else {
+                            $output->writeln("<error>Fail! Expected $test</error>");
+                        }
+
+                        $output->writeln("\n");
+                    }
+
+                    $output->writeln("<comment>Testing Part 2</comment>\n");
+
+                    foreach ($tests[1] as $dayInput => $test) {
+                        setInput($dayInput);
+
+                        $result = (function ($path, $day) {
+                            return require("$path/$day/part2.php");
+                        })($path, $day);
+
+                        if ($result === $test) {
+                            $output->writeln('<success>Pass!</success>');
+                        } else {
+                            $output->writeln("<error>Fail! Expected $test</error>");
+                        }
+
+                        $output->writeln("\n");
+                    }
+                }
+
+                $dayInput = file_get_contents("$path/$day/input.txt");
+
+                setInput($dayInput);
+
+                $result = (function ($path, $day) {
+                    return require("$path/$day/part1.php");
+                })($path, $day);
+
+                $output->writeln("<info>Result: ($day / Part 1)</info>: $result");
+
+                $result = (function ($path, $day) {
+                    return require("$path/$day/part2.php");
+                })($path, $day);
+
+                $output->writeln("<info>Result: ($day / Part 2)</info>: $result");
+
+                $output->writeln("\n\n");
+            }
+        })
+        ->getApplication()
+        ->setDefaultCommand('run', true)
+        ->run();
+} catch (Exception $e) {
+}
