@@ -62,14 +62,13 @@ try {
                         })($path, $day);
 
                         if ($result === $test) {
-                            $output->writeln('<success>Pass!</success>');
+                            $output->writeln('<info>Pass!</info>');
                         } else {
                             $output->writeln("<error>Fail! Expected $test</error>");
                         }
-
-                        $output->writeln("\n");
                     }
 
+                    $output->writeln("\n");
                     $output->writeln("<comment>Testing Part 2</comment>\n");
 
                     foreach ($tests[1] as $dayInput => $test) {
@@ -80,13 +79,13 @@ try {
                         })($path, $day);
 
                         if ($result === $test) {
-                            $output->writeln('<success>Pass!</success>');
+                            $output->writeln('<info>Pass!</info>');
                         } else {
                             $output->writeln("<error>Fail! Expected $test</error>");
                         }
-
-                        $output->writeln("\n");
                     }
+
+                    $output->writeln("\n");
                 }
 
                 $dayInput = file_get_contents("$path/$day/input.txt");
